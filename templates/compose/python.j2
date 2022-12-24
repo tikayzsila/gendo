@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+
+  {{project_name}}:
+    image: gitlab.space-tech.online:5050/webdev/{{project_name}}:${ENV}
+    container_name: {{project_name}}
+    build: ./
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8456:{%raw%}${PORT}"{%endraw%}
+
+    networks:
+      - {{project_name}}
+    command: gunicorn --bind ${HOST}:${PORT} "${APP_MODULE}" -k uvicorn.workers.UvicornWorker
+
+networks:
+  {{project_name}}:
+    name: {{project_name}}
+    driver: bridge

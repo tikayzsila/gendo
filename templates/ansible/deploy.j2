@@ -1,0 +1,32 @@
+{% raw %}
+- name: Depoloy Frontend App With Docker
+  hosts: "{{ENVIRONMENT}}"
+  tasks:
+  - name: Log into registry and force re-authorization
+    community.docker.docker_login:
+      registry_url: "{{ docker_registry }}"
+      username: "{{ docker_username }}"
+      password: "{{ docker_password }}"
+      reauthorize: true
+
+  - name: "Stop Old containers"
+    ansible.builtin.command: "docker compose down"
+    ignore_errors: yes
+    args:
+      chdir: "{{server_path}}"
+
+  - name: "Pull new Image"
+    ansible.builtin.command: "docker compose pull"
+    ignore_errors: yes
+    args:
+      chdir: "{{server_path}}"
+
+  - name: "Start New containers"
+    ansible.builtin.command: "docker compose up -d"
+    args:
+      chdir: "{{server_path}}"
+
+  - name: Log out of DockerRegistry
+    community.docker.docker_login:
+      state: absent
+{% endraw %}

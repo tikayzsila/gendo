@@ -1,0 +1,23 @@
+version: '3.7'
+services:
+
+  {{project_name}}:
+    build: 
+      context: ./
+
+    image: gitlab.space-tech.online:5050/webdev/{{project_name}}:latest
+    container_name: {{project_name}}
+    restart: always
+    ports:
+      - "{{port_host}}:8080"
+
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+
+    networks:
+      - {{project_name}}
+
+networks:
+  {{project_name}}:
+    name: {{project_name}}
+    driver: bridge

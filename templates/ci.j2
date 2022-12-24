@@ -1,0 +1,12 @@
+include:
+  - project: {{gitlab_templates_repo}}
+    file: template.gitlab-ci.yml
+    ref: {{lang}}
+
+variables:
+  ANSIBLE: "/home/support/{{project_name}}"
+  BRANCH: "{{branch}}"
+  TAG_BUILD_STAGE: "{{project_name}}Build(Stage)"
+  TAG_BUILD_PROD: "{{project_name}}Build(Prod)"
+  TAG_DEPLOY_STAGE: "{{project_name}}Deploy(Stage)"
+  TAG_DEPLOY_PROD: "{{project_name}}Deploy(Prod)"

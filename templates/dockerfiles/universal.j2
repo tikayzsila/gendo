@@ -1,0 +1,36 @@
+{%raw%}
+# ---- Base Alpine Image ----
+FROM alpine:latest AS base
+
+RUN apk add --no-cache --update nodejs npm
+RUN npm install -g @angular/cli
+WORKDIR /usr/local/app
+
+# ---- Install & Cache js Dependencies ----
+FROM base AS dependencies
+
+COPY package.json .
+COPY package-lock.json .
+# install node packages
+
+RUN --mount=type=cache,target=/usr/src/app/.npm \
+    npm set cache /usr/src/app/.npm && \
+    npm install --no-audit --progress=false
+
+# build server and client parts
+FROM dependencies as builder
+COPY . .
+ARG env
+ENV ENV_NAME $env
+
+RUN if [[ ${ENV_NAME} == prod ]] ;\
+        then npm run build-ssr ;\
+        else ng build --configuration development && ng run youintest:server  ;\
+        fi
+
+# ---- Release Image with Builded angular app ----
+FROM node:alpine
+WORKDIR /home/app
+COPY --chown=node:node --from=builder /usr/local/app/dist /home/app/dist
+{%endraw%}
+ENTRYPOINT [ "node", "dist/{{project_name}}/server/main.js" ]

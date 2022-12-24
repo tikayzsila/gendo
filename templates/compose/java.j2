@@ -1,0 +1,68 @@
+version: '3.7'
+services:
+
+  {{project_name}}:
+    image: gitlab.space-tech.online:5050/webdev/{{project_name}}:latest
+    container_name: {{project_name}}
+    build: ./
+    restart: always
+    ports:
+      - "5000:8080"
+    depends_on:
+      - database
+    env_file:
+      - .env
+    {%raw%}
+    environment:
+      spring.datasource.url: "jdbc:postgresql://${POSTGRES_HOST}:5432/${DB_NAME}"
+      spring.datasource.username: ${DB_USER}
+      spring.datasource.password: ${DB_PASSWORD}
+      spring.jpa.hibernate.ddl-auto: ${DDL_AUTO}
+      jwt.public.key: ${PUBKEY}
+      jwt.private.key: ${PRIVKEY}
+      seedfile: ${SEEDING_FILE}
+
+      server.error.include-stacktrace: never
+      server.error.include-message: never
+    {%endraw%}
+
+    networks:
+      - {{project_name}}
+
+    entrypoint: [ "java", "-jar", "app.jar" ]
+  
+
+  database:
+  {%raw%}
+    container_name: ${POSTGRES_HOST}
+    image: postgres:latest
+    restart: always
+    ports:
+      - "3307:5432"
+    env_file:
+      - .env
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: 5432
+      POSTGRES_POOL: 10
+    {%endraw%}
+
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+    networks:
+      - {{project_name}}
+
+volumes:
+  pg_data:
+    name: pg_data
+
+networks:
+  {{project_name}}:
+    name: {{project_name}}
+    driver: bridge
+

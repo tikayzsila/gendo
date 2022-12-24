@@ -1,0 +1,32 @@
+{%raw%}
+FROM alpine:latest AS base
+
+RUN apk add --no-cache --update nodejs npm
+WORKDIR /usr/local/app
+
+# ---- Install & Cache js Dependencies ----
+FROM base AS dependencies
+WORKDIR /usr/local/app
+
+COPY package.json .
+COPY package-lock.json .
+
+RUN mkdir build && npm set cache /usr/src/app/.npm 
+RUN --mount=type=cache,target=/usr/src/app/.npm \
+   npm install --production
+
+FROM dependencies as builder
+COPY . .
+RUN npm run build
+
+# ---- Release Image with Builded app ----
+FROM node:alpine AS release
+WORKDIR /usr/local/app/
+COPY ./package.json /usr/local/app/package.json
+RUN npm i
+COPY --from=builder /usr/local/app/.next /usr/local/app/.next
+COPY --chown=node:node . .
+
+USER node
+CMD [ "npm", "start" ]
+{%endraw%}

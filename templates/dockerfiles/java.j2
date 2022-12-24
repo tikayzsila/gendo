@@ -1,0 +1,15 @@
+{%raw%}
+FROM adoptopenjdk/openjdk16:jdk-16.0.1_9-alpine as builder
+ADD . /src
+WORKDIR /src
+RUN chmod +x mvnw
+
+RUN --mount=type=cache,target=/root/.m2,rw ./mvnw -B package -DskipTests
+
+FROM alpine:3.15
+
+RUN apk --no-cache add openjdk16-jdk
+COPY --from=builder /src/target/*.jar app.jar
+COPY $SEEDING_FILE $APP_HOME/$SEEDING_FILE
+
+{%endraw%}
