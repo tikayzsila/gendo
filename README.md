@@ -11,16 +11,16 @@
 
 Для использования нужны все темплейты с папки templates, А также я yaml конфиг(gendo.yml):
       
-      lang: python
-      project_name: web
+    lang: python
+    project_name: web
 
-      compose:
-        port_host: 8888
+    compose:
+    port_host: 8888
 
-      gitlab-ci:
-        branch: ci/test
-        gitlab_templates_repo: ivanov_vs/ci-templates
+    gitlab-ci:
+    branch: ci/test
+    gitlab_templates_repo: ivanov_vs/ci-templates
 
-      ansible:
-        staging_ip: 192.168.1.1
-        prod_ip: 127.0.0.1
+    ansible:
+    staging_ip: 192.168.1.1
+    prod_ip: 127.0.0.1
