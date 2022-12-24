@@ -10,7 +10,7 @@
 ## Использование
 
 Для использования нужны все темплейты с папки templates, А также я yaml конфиг(gendo.yml):
-      ---
+      
       lang: python
       project_name: web
 
