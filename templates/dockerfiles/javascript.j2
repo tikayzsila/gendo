@@ -1,0 +1,36 @@
+{%raw%}
+# ---- Base Alpine Image ----
+FROM alpine:latest AS base
+
+RUN apk add --no-cache --update nodejs npm yarn
+WORKDIR /usr/local/app
+
+# ---- Install & Cache js Dependencies ----
+FROM base AS dependencies
+
+COPY package.json .
+COPY yarn.lock .
+# install node packages
+
+RUN --mount=type=cache,target=/usr/src/app/.npm npm i -g nx yarn
+RUN yarn install
+# build frontend
+
+FROM dependencies as builder
+
+COPY . .
+ARG environ
+ARG app_name
+
+RUN if [[ ${environ} == prod ]] ;\
+        then nx build ${app_name} --output-path=build;\
+        else nx build ${app_name} --configuration development --output-path=build;\
+        fi
+
+# ---- Release Image with Builded app ----
+FROM nginxinc/nginx-unprivileged:alpine
+WORKDIR /home/app
+ARG app_name
+COPY --chown=nginx:nginx --from=builder /usr/local/app/build /home/app
+COPY --chown=nginx:nginx --from=builder /usr/local/app/nginx.conf /etc/nginx/conf.d/default.conf
+{%endraw%}

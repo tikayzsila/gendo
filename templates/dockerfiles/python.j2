@@ -1,5 +1,5 @@
 {%raw%}
-FROM python:3.10.9-slim as base
+FROM bitnami/python:3.10-debian-11 as base
 
 ARG APP_NAME=app
 ARG APP_PATH=/opt/$APP_NAME
@@ -17,19 +17,35 @@ COPY pyproject.toml poetry.lock ./
 RUN pip install poetry
 COPY . .
 RUN poetry build --format wheel
-RUN poetry export --format requirements.txt --output constraints.txt --without-hashes --without dev
+RUN poetry export --format requirements.txt --output requirements.txt --without-hashes --without dev
 
-FROM python:3.10.9-slim
+FROM bitnami/python:3.10-debian-11
+
 ARG APP_NAME=app
 ARG APP_PATH=/opt/$APP_NAME
 WORKDIR $APP_PATH
 
-RUN useradd serve && groupadd -r prod && chown serve:prod $APP_PATH
-COPY --from=builder --chown=serve:prod $APP_PATH/dist/*.whl ./
-COPY --from=builder --chown=serve:prod $APP_PATH/constraints.txt ./
+RUN apt update && apt install -y tzdata &&\
+     groupadd -g 1001 serve &&\
+     useradd -u 1001 -g 1001 serve &&\
+     cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime && echo "Europe/Moscow" > /etc/timezone && \
+     apt remove -y tzdata  &&\
+     mkdir $APP_PATH/static &&\
+        chown -R serve:serve $APP_PATH
 
-RUN pip install *.whl --constraint constraints.txt && rm *.txt *.whl
+ENV LANG ru_RU.UTF-8
+ENV LC_ALL ru_RU.UTF-8
+ENV TZ="Europe/Moscow"
 
-RUN chmod ugo-rwx -R /usr/bin && chmod ugo-rwx -R /bin 
+COPY --from=builder --chown=serve:serve $APP_PATH/dist/*.whl \
+                    $APP_PATH/requirements.txt \
+                    $APP_PATH/migrations \
+                    $APP_PATH/alembic.ini \
+                    $APP_PATH/logger.conf \
+                    $APP_PATH/seed.py ./
+
+COPY --from=builder --chown=serve:serve $APP_PATH/migrations $APP_PATH/migrations
+
+RUN pip install *.whl -r requirements.txt && rm *.txt *.whl
 USER serve
 {%endraw%}

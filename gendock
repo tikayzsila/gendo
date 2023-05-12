@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import click
 import os
-from gendo.CiGen import DockerfileGen, DIR, DIR_ROLE, ComposeGen, GitlabGen, AnsibleGen
+from gendo.CiGen import DockerfileGen, DIR, GitlabGen
 
 @click.group()
 def cli():
-    """ЭТО УТИЛИТА ДЛЯ ГЕНЕРАЦИИ КОНФИГОВ (dockerfiles, docker-compose, gitlab-ci)"""
+    """ЭТО УТИЛИТА ДЛЯ ГЕНЕРАЦИИ КОНФИГОВ (dockerfiles, gitlab-ci)"""
     
 @cli.command()
 def gen():
@@ -13,18 +13,10 @@ def gen():
     if not os.path.exists(DIR):
         os.makedirs(DIR)
     
-    if not os.path.exists(DIR_ROLE):
-        os.makedirs(DIR_ROLE)
-    
     dockerfile = DockerfileGen()
-    composefile = ComposeGen()
     cifile = GitlabGen()
-    ansible = AnsibleGen()
-    
+
     dockerfile.create_dockerfile()
-    composefile.check_webserver()
-    composefile.gen_compose_file()
     cifile.create_ci_file()
-    ansible.gen_ansible_role()
-        
+
 cli()

@@ -1,4 +1,3 @@
-
 import yaml
 import os
 
@@ -17,6 +16,6 @@ class Generator():
         lang_info['templ_name'] = f'{lang}.j2'
         lang_info['needs_webserver'] = False
         
-        if lang == 'angular' or lang == 'react':
+        if lang == 'javascript':
             lang_info['needs_webserver'] = True
         return lang_info
